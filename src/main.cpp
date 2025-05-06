@@ -73,6 +73,8 @@ void loop()
     Serial.println("CAN mesajı gönderilemedi!");
     Serial.println(sendStatus);
   }
+  // 5ms (5000 microseconds) bekle - loop hızını kontrol et
+  delay(2);
 }
 
 // byte randomValue = random(1, 8);
