@@ -1,11 +1,10 @@
 #include <mcp_can.h>
 #include <SPI.h>
-
+#define K25_DEBUG_MODE 0
 #define CAN_CS_PIN 10 // MCP2515 CS pini
-#define LED_PIN 13    // Dahili LED pini (D13)
 
-#define RAW_INPUT_BASE_VALUE 588.0
-#define RAW_INPUT_TOP_VALUE 550.0
+#define RAW_INPUT_BASE_VALUE 722.0
+#define RAW_INPUT_TOP_VALUE 668.0
 
 MCP_CAN CAN(CAN_CS_PIN); // MCP2515 nesnesi oluşturuluyor
 
@@ -25,11 +24,11 @@ float get_throttle_value(int read_value)
 void setup()
 {
   Serial.begin(112500);     // Seri iletişim başlatılıyor
-  pinMode(LED_PIN, OUTPUT); // Dahili LED pini çıkış olarak ayarlanıyor
 
   // CAN Bus başlatılıyor
   if (CAN.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK)
   {
+
     Serial.println("MCP2515 başarıyla başlatıldı!");
   }
   else
@@ -47,7 +46,12 @@ void loop()
   // CAN mesajı alınıyor
 
   int deger = analogRead(A0); // A0 pininden analog değeri oku (0 - 1023 arası)
-  Serial.println(get_throttle_value(deger));
+  // Serial.println(deger);
+  if (K25_DEBUG_MODE)
+  {
+    Serial.print("Analog değer: ");
+    Serial.println(deger);
+  }
 
   float percent = get_throttle_value(deger);
 
@@ -65,29 +69,20 @@ void loop()
   byte sendStatus = CAN.sendMsgBuf(0x0B4, 0, 8, data);
   if (sendStatus == CAN_OK)
   {
-    Serial.print("CAN mesajı başarıyla gönderildi! Gönderilen değer: ");
-    Serial.println(percent);
+    if (K25_DEBUG_MODE)
+    {
+      Serial.print("CAN mesajı başarıyla gönderildi! Gönderilen değer: ");
+      Serial.println(percent);
+    }
   }
   else
   {
-    Serial.println("CAN mesajı gönderilemedi!");
-    Serial.println(sendStatus);
+    if (K25_DEBUG_MODE)
+    {
+      Serial.print("CAN mesajı gönderilemedi!: ");
+      Serial.println(sendStatus);
+    }
   }
   // 5ms (5000 microseconds) bekle - loop hızını kontrol et
-  delay(2);
+  delay(20); // 50 Hz
 }
-
-// byte randomValue = random(1, 8);
-// byte data[1] = {randomValue};  // Gönderilecek veri
-
-// // CAN mesajı gönderiliyor
-// byte sendStatus = CAN.sendMsgBuf(0x100, 0, 1, data);  // CAN ID: 0x100, Veri uzunluğu: 1
-// if (sendStatus == CAN_OK) {
-//   Serial.print("CAN mesajı başarıyla gönderildi! Gönderilen değer: ");
-//   Serial.println(randomValue);
-// } else {
-//   Serial.println("CAN mesajı gönderilemedi!");
-//   Serial.println(sendStatus);
-
-// }
-//}
